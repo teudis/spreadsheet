@@ -29,9 +29,6 @@ Best of luck!
 import string
 alpha_list = list(string.ascii_uppercase)
 
-
-
-
 def format_curren_pos(cad: str) -> str:
     """Function for Remove spaces and Upper the String
     :param cad : String to format
@@ -179,7 +176,7 @@ def evaluate(matriz):
         - There will be no column that goes past "Z" and capitalization in
           column names is ignored. I.e. "A1" is the same as "a1".
 
-    :param m: The matrix to be evaluated. Each of the entries in the matrix
+    :param matriz: The matrix to be evaluated. Each of the entries in the matrix
               will either be numbers or strings.
     :returns: A matrix of the same dimensions as :attr:`m` with all of the
               functions evaluated. All of the entries in this returned matrix
@@ -335,7 +332,7 @@ def evaluate(matriz):
                 current_value = int(current_value)
                 matriz[row_matriz][pos] = current_value
 
-    print(matriz)
+    return matriz
 
 
 
