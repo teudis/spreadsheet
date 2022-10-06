@@ -27,6 +27,7 @@ style.
 Best of luck!
 """
 import string
+import re
 alpha_list = list(string.ascii_uppercase)
 
 def format_curren_pos(cad: str) -> str:
@@ -84,30 +85,16 @@ def validate_cell(expression: str) -> bool:
     :param expression: String to evaluate expression in cell
     :return: True or False, if expression is correct return True else return False
     """
-    if expression.startswith("="):
-        cad = expression[1:]
-        if len(cad.split("+")) > 1:
-            if (len(cad.split("+")) == 2) or len(cad.split("+")) > 3:
-                return False
-            else:
-                return True
-        elif len(cad.split("-")) > 1:
-            if (len(cad.split("-")) == 2) or len(cad.split("-")) > 3:
-                return False
-            else:
-                return True
-        elif len(cad.split("*")) > 1:
-            if (len(cad.split("*")) == 2) or len(cad.split("*")) > 3:
-                return False
-            else:
-                return True
-        elif len(cad.split("/")) > 1:
-            if (len(cad.split("/")) == 2) or len(cad.split("/")) > 3:
-                return False
-            else:
-                return True
-        else:
-            return False
+    exp_formatted = format_curren_pos(expression)
+    letters_exp = "[A-Z]{1}[0-9]+"   
+    number_exp = "([0-9]+.[0-9]+|[0-9]+)"
+    full_number_expr = "-"+number_exp+"|"+number_exp
+    itemRegex = " *("+letters_exp+"|"+full_number_expr+")"
+    all_exp = re.match("(("+itemRegex+" *[+\\-*/]{1}"+itemRegex+")|"+full_number_expr+")", exp_formatted) 
+    if all_exp :
+        return True
+    else:
+         return False
 
 
 # =============================================================================
@@ -263,11 +250,16 @@ def evaluate(matriz):
     for row_matriz in range(len(matriz)):
         for pos in range(len(matriz[row_matriz])):
             current_value = matriz[row_matriz][pos]
-
-            #if current_value == type(str) and not validate_cell(current_value):
-            #    raise Exception("ValueError")
+            #Check Value None in cell
+            if current_value == None:
+                raise ValueError   
+            # Check invalid format in cell             
+            if not validate_cell(current_value):
+                raise ValueError 
+            # Check if the cell is a String
             if type(current_value) == str and len(current_value) > 1:
                 try:
+                    # Check if the operation in the cell is between two number
                     if current_value[1].isnumeric():
                         if len(current_value.split("+")) > 1:
                             pos_operator = current_value.index("+")
@@ -327,7 +319,7 @@ def evaluate(matriz):
                 except IndexError:
                     print("ReferenceError")
                     return
-
+            # Case when the expression in the cell is a number
             else:
                 current_value = int(current_value)
                 matriz[row_matriz][pos] = current_value
