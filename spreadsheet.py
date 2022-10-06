@@ -259,37 +259,66 @@ def evaluate(matriz):
             # Check if the cell is a String
             if type(current_value) == str and len(current_value) > 1:
                 try:
-                    # Check if the operation in the cell is between two number
+                    # Check if the operation in the cell first element is a number
                     if current_value[1].isnumeric():
                         if len(current_value.split("+")) > 1:
                             pos_operator = current_value.index("+")
-                            first_value = current_value[:pos_operator]
-                            second_value = current_value[pos_operator + 1:]
-                            total = first_value + second_value
-                            matriz[row_matriz][pos] = total
+                            first_value = current_value[1:pos_operator]
+                            if current_value[pos_operator + 1].isnumeric():
+                                second_value = current_value[pos_operator + 1:]
+                                total = first_value + second_value
+                                matriz[row_matriz][pos] = total
+                            else:
+                                second_value = current_value[pos_operator + 1:]
+                                number, letter = format_cell(second_value)
+                                second_value_end = matriz[number][letter]
+                                total = int(first_value) + second_value_end
+                                matriz[row_matriz][pos] = total
                         elif len(current_value.split("-")) > 1:
                             pos_operator = current_value.index("-")
                             first_value = int(current_value[1:pos_operator])
-                            second_value = int(current_value[pos_operator + 1:])
-                            total = first_value - second_value
-                            matriz[row_matriz][pos] = total
+                            if current_value[pos_operator + 1].isnumeric():
+                                second_value = current_value[pos_operator + 1:]
+                                total = first_value - second_value
+                                matriz[row_matriz][pos] = total
+                            else:
+                                second_value = current_value[pos_operator + 1:]
+                                number, letter = format_cell(second_value)
+                                second_value_end = matriz[number][letter]
+                                total = int(first_value) - second_value_end
+                                matriz[row_matriz][pos] = total
                         elif len(current_value.split("*")) > 1:
                             pos_operator = current_value.index("*")
                             first_value = int(current_value[1:pos_operator])
-                            second_value = int(current_value[pos_operator + 1:])
-                            total = first_value * second_value
-                            matriz[row_matriz][pos] = total
+                            if current_value[pos_operator + 1].isnumeric():
+                                second_value = current_value[pos_operator + 1:]
+                                total = first_value * second_value
+                                matriz[row_matriz][pos] = total
+                            else:
+                                second_value = current_value[pos_operator + 1:]
+                                number, letter = format_cell(second_value)
+                                second_value_end = matriz[number][letter]
+                                total = int(first_value) * second_value_end
+                                matriz[row_matriz][pos] = total
                         else:
                             pos_operator = current_value.index("/")
                             first_value = int(current_value[1:pos_operator])
-                            second_value = int(current_value[pos_operator + 1:])
                             # validate division zero
                             try:
-                                total = first_value / second_value
-                                matriz[row_matriz][pos] = total
+                                if current_value[pos_operator + 1].isnumeric():
+                                    second_value = current_value[pos_operator + 1:]
+                                    total = first_value / second_value
+                                    matriz[row_matriz][pos] = total
+                                else:
+                                    second_value = current_value[pos_operator + 1:]
+                                    number, letter = format_cell(second_value)
+                                    second_value_end = matriz[number][letter]
+                                    total = int(first_value) / second_value_end
+                                    matriz[row_matriz][pos] = total
                             except ZeroDivisionError:
                                 print("ZeroDivisionError")
                                 return
+
 
                     else:
                         current_value = format_curren_pos(current_value)
