@@ -324,7 +324,9 @@ def evaluate(matriz):
 
                     else: # Check if value in the cell in the format [a-z]*[1-9]{1}
                         current_value = format_curren_pos(current_value)
-                        if len(current_value) == 2 :
+                        operators = "[+\\-*/]{1}"
+                        result_operators = re.findall(operators, current_value)
+                        if not result_operators :
                             number, pos_letter = format_cell(current_value)
                             matriz[row_matriz][pos] = matriz[number][pos_letter]
                         else:
