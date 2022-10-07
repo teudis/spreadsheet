@@ -123,7 +123,7 @@ def check_next_cell_expression(current_cad, matrix):
     letters_exp = "[A-Z]{1}[0-9]+"
     operators = "[+\\-*/]{1}"
     result_operators = re.findall(operators, current_cad)
-    if type(current_cad) == str and re.match(letters_exp, current_cad) and result_operators:
+    if (type(current_cad) == str and re.match(letters_exp, current_cad) and result_operators)  or type(current_cad) == str and re.match(letters_exp, current_cad)  :
         operator = result_operators[0]
         pos_operator = current_cad.index(operator)
         first_value = current_cad[0:pos_operator]
@@ -135,9 +135,36 @@ def check_next_cell_expression(current_cad, matrix):
         else:
             return False, value_matrix
     else:
-        return False
+        return False, current_cad
   
 
+def evaluate_cell(current_value, matriz,row_matriz, pos):
+    operators = "[+\\-*/]{1}"
+    result_operators = re.findall(operators, current_value)
+    if not result_operators :
+        number, pos_letter = format_cell(current_value)
+        matriz[row_matriz][pos] = matriz[number][pos_letter]
+    else:
+        letter = current_value[:2]
+        operator = current_value[2]
+        other_value = current_value[3:]
+        if len(other_value) == 1 or other_value[0]=="-":
+            second_value = int(other_value)
+            number, pos_letter = format_cell(letter)
+            first_value = matriz[number][pos_letter]
+            total = operation_cell(first_value, second_value, operator)
+            matriz[row_matriz][pos] = total
+        else:
+            first_letter = current_value[:2]
+            operator = current_value[2]
+            second_letter = current_value[3:]
+            number_first_letter, first_pos_letter = format_cell(first_letter)
+            first_value = matriz[number_first_letter][first_pos_letter]
+            number_second, pos_letter_second = format_cell(second_letter)
+            second_value = int(matriz[number_second][pos_letter_second])
+            total = operation_cell(first_value, second_value, operator)
+            matriz[row_matriz][pos] = total
+    return matriz
 
 # =============================================================================
 #
@@ -366,32 +393,27 @@ def evaluate(matriz):
 
                     else: # Check if value in the cell in the format [a-z]*[1-9]{1}
                         current_value = format_curren_pos(current_value)
+                        check, result_checking = check_next_cell_expression(current_value,matrix=matriz)
+                        all_nexts = []
+                        
+                        if check:
+                            all_nexts.append(result_checking)
+                            while check :
+                                next_value = result_checking.next
+                                next_value = format_curren_pos(next_value)
+                                check, result_checking = check_next_cell_expression(next_value,matrix=matriz)
+                                all_nexts.append(result_checking)
+                            reverse_next = all_nexts[::-1]
+                            for item in range(1,len(reverse_next)):
+                                print(reverse_next[item].get_next())
+                                cell_calculate = format_curren_pos(reverse_next[item].get_next())
+                                update_mattriz = evaluate_cell(cell_calculate,matriz,row_matriz, pos)
+                                matriz = update_mattriz
 
-                        operators = "[+\\-*/]{1}"
-                        result_operators = re.findall(operators, current_value)
-                        if not result_operators :
-                            number, pos_letter = format_cell(current_value)
-                            matriz[row_matriz][pos] = matriz[number][pos_letter]
+
                         else:
-                            letter = current_value[:2]
-                            operator = current_value[2]
-                            other_value = current_value[3:]
-                            if len(other_value) == 1 or other_value[0]=="-":
-                                second_value = int(other_value)
-                                number, pos_letter = format_cell(letter)
-                                first_value = matriz[number][pos_letter]
-                                total = operation_cell(first_value, second_value, operator)
-                                matriz[row_matriz][pos] = total
-                            else:
-                                first_letter = current_value[:2]
-                                operator = current_value[2]
-                                second_letter = current_value[3:]
-                                number_first_letter, first_pos_letter = format_cell(first_letter)
-                                first_value = matriz[number_first_letter][first_pos_letter]
-                                number_second, pos_letter_second = format_cell(second_letter)
-                                second_value = int(matriz[number_second][pos_letter_second])
-                                total = operation_cell(first_value, second_value, operator)
-                                matriz[row_matriz][pos] = total
+                            update_mattriz = evaluate_cell(current_value, matriz,row_matriz, pos)
+                            matriz = update_mattriz
                 except IndexError:
                     raise ReferenceError
             # Case when the expression in the cell is a number
@@ -489,12 +511,12 @@ solution.append(ReferenceError)
 
 # Case: circular dependencies
 #6
-testcase.append(
-    [
-        ["=B1 + 1", "=A1 + 1"]
-    ]
-)
-solution.append(ValueError)
+#testcase.append(
+ #   [
+ #       ["=B1 + 1", "=A1 + 1"]
+ #   ]
+#)
+#solution.append(ValueError)
 
 # Case: highly recursive spreadsheet, all operations represented
 #7
