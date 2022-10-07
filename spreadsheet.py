@@ -28,7 +28,28 @@ Best of luck!
 """
 import string
 import re
+from urllib.parse import SplitResult
 alpha_list = list(string.ascii_uppercase)
+
+class ExpressionMatrix():
+
+    def __init__(self, value,letter, position, next ) -> None:
+        self.value = value
+        self.letter = letter
+        self.position = position
+        self.next = next
+
+    def get_value(self):
+        return self.value
+    
+    def get_letter(self):
+        return self.letter
+    
+    def get_position(self):
+        return self.position
+    
+    def get_next(self):
+        return self.next
 
 def format_curren_pos(cad: str) -> str:
     """Function for Remove spaces and Upper the String
@@ -86,16 +107,36 @@ def validate_cell(expression: str) -> bool:
     :param expression: String to evaluate expression in cell
     :return: True or False, if expression is correct return True else return False
     """
-    exp_formatted = format_curren_pos(expression)
-    letters_exp = "[A-Z]{1}[0-9]+"   
-    number_exp = "([0-9]+.[0-9]+|[0-9]+)"
-    full_number_expr = "-"+number_exp+"|"+number_exp
-    itemRegex = " *("+letters_exp+"|"+full_number_expr+")"
-    all_exp = re.match("(("+itemRegex+" *[+\\-*/]{1}"+itemRegex+")|"+full_number_expr+")", exp_formatted) 
-    if all_exp :
-        return True
+    if not expression.startswith("="):
+        return False
     else:
-         return False
+        return True
+
+
+def check_next_cell_expression(current_cad, matrix):
+    """
+     Function for validate check if the value is an string or integer
+    :param current_cad: String to check value
+    :param matrix: matrix with the values
+    :return: True or False, if expression is correct return True else return False
+    """
+    letters_exp = "[A-Z]{1}[0-9]+"
+    operators = "[+\\-*/]{1}"
+    result_operators = re.findall(operators, current_cad)
+    if type(current_cad) == str and re.match(letters_exp, current_cad) and result_operators:
+        operator = result_operators[0]
+        pos_operator = current_cad.index(operator)
+        first_value = current_cad[0:pos_operator]
+        number_pos, letter_pos = format_cell(first_value)
+        value_matrix = matrix[number_pos][letter_pos]
+        if type(value_matrix) == str:
+            current_expression = ExpressionMatrix(current_cad,letter_pos, number_pos, value_matrix)
+            return True, current_expression
+        else:
+            return False, value_matrix
+    else:
+        return False
+  
 
 
 # =============================================================================
@@ -253,7 +294,8 @@ def evaluate(matriz):
             current_value = matriz[row_matriz][pos]  
             #Check Value None in cell
             if current_value == None:
-                raise ValueError            
+                raise ValueError   
+             
             # Check if the cell is a String
             if type(current_value) == str and len(current_value) > 1:
                  
@@ -324,6 +366,7 @@ def evaluate(matriz):
 
                     else: # Check if value in the cell in the format [a-z]*[1-9]{1}
                         current_value = format_curren_pos(current_value)
+
                         operators = "[+\\-*/]{1}"
                         result_operators = re.findall(operators, current_value)
                         if not result_operators :
@@ -372,6 +415,7 @@ solution = []
 
 
 # Case: simple spreadsheet with strings and ints
+#0
 testcase.append(
     [
         [1, "2"],
@@ -384,7 +428,7 @@ solution.append (
         [3, 4]
     ]
 )
-
+#1
 # Case: simple (non-recursive) formulas
 testcase.append(
     [
@@ -399,6 +443,7 @@ solution.append(
     ]
 )
 
+#2
 testcase.append(
     [
         [1, "=1-1"],
@@ -414,6 +459,7 @@ solution.append(
 
 
 # Case: formulas referencing two cells
+#3
 testcase.append(
     [
         [1,     "=A1+1", "=A1 + B1"],
@@ -428,6 +474,7 @@ solution.append(
 )
 
 # Cases: formula referencing cells out of range
+#4
 testcase.append(
     [
         [1,         "=A5 + 2"],
@@ -436,10 +483,12 @@ testcase.append(
 )
 solution.append(ReferenceError)
 
+#5
 testcase.append([ [1, "=C1"] ])
 solution.append(ReferenceError)
 
 # Case: circular dependencies
+#6
 testcase.append(
     [
         ["=B1 + 1", "=A1 + 1"]
@@ -448,6 +497,7 @@ testcase.append(
 solution.append(ValueError)
 
 # Case: highly recursive spreadsheet, all operations represented
+#7
 testcase.append(
     [
         [ "=C1+5", "=A3/2", "=c2-1" ],
@@ -464,51 +514,66 @@ solution.append(
 )
 
 # Cases: malformed formulas
+#8
 testcase.append([ [ 1, "=A1 +" ] ] )
 solution.append(ValueError)
 
+#9
 testcase.append([ [ 1, "=A1+5+6+7" ] ])
 solution.append(ValueError)
 
+#10
 testcase.append([ [ 1, "=A1 $ A1" ] ])
 solution.append(ValueError)
 
 # Case: division by zero
+#11
 testcase.append([ [ 1, "=A1 - 1", "=A1 / B1" ] ])
 solution.append(ZeroDivisionError)
 
 # Case: negative numbers
+#12
 testcase.append([ [ 1, "=A1 * -1" ] ])
 solution.append([ [ 1, -1 ] ])
 
+#13
 testcase.append([ [ -1, "=A1 * -5" ] ])
 solution.append([ [ -1, 5 ] ])
 
+#14
 testcase.append([ [ 1, "=-2 + a1" ] ])
 solution.append([ [ 1, -1 ] ])
 
+#15
 testcase.append([ [ 1, "=A1 + -5" ] ])
 solution.append([ [ 1, -4 ] ])
 
+#16
 testcase.append([ [ 1, "=A-1 + 1" ] ])
 solution.append(ValueError)
 
+#17
 testcase.append([ [ 1, "=-A1 + 1" ] ])
 solution.append([ [ 1, 0 ] ])
 
 # Case: Errors in input
+#18
 testcase.append([ [ -1, "=A1 + - 5" ] ])
 solution.append(ValueError)
 
+#19
 testcase.append([ [ "" ] ])
 solution.append(ValueError)
 
+#20
 testcase.append([ [ None ] ])
 solution.append(ValueError)
 
+#21
 testcase.append([ [ None, "=A1" ] ])
 solution.append(ValueError)
 
+#22
 testcase.append([ [ "A1" ] ])
 solution.append(ValueError)
 
